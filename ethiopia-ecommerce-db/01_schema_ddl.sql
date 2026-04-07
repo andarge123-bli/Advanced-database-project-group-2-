@@ -1,7 +1,7 @@
 -- =============================================================================
 -- ETHIOPIA E-COMMERCE PLATFORM — PRODUCTION-GRADE MySQL 8 DATABASE
 -- =============================================================================
--- Author  : Principal Database Architect
+-- Author  : group 2 students 
 -- Version : 1.0.0
 -- Date    : 2026-04-07
 -- Target  : MySQL 8.0+  (InnoDB, utf8mb4, ROW_FORMAT=DYNAMIC)
