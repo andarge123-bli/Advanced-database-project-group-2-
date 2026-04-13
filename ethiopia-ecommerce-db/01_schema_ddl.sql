@@ -193,7 +193,7 @@ CREATE TABLE user_addresses (
 
     CONSTRAINT fk_addr_user   FOREIGN KEY (user_id)   REFERENCES users(user_id)   ON DELETE CASCADE,
     CONSTRAINT fk_addr_region FOREIGN KEY (region_id) REFERENCES regions(region_id),
-
+UNIQUE (user_id, is_default) WHERE is_default = 1,
     KEY idx_addr_user    (user_id),
     KEY idx_addr_region  (region_id),
     KEY idx_addr_default (user_id, is_default)
