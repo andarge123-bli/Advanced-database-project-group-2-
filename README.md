@@ -4,7 +4,8 @@
 ### Advanced Database Systems — Group 2 Project
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Database-Mysql 8+%2015%2B-336791?style=for-the-badge&logo=postgresql&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Database-Mysql_8+-336791?style=for-the-badge&logo=mysql&logoColor=white"/>
+  
   <img src="https://img.shields.io/badge/Normalization-3NF%20%2F%20BCNF-1a7a6e?style=for-the-badge"/>
   <img src="https://img.shields.io/badge/Tables-32%20Entities-1a4a7a?style=for-the-badge"/>
   <img src="https://img.shields.io/badge/Architecture-Distributed-c8860a?style=for-the-badge"/>
