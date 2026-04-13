@@ -185,3 +185,136 @@ CREATE TABLE `seller_profiles` (
     KEY `idx_seller_rating` (`rating` DESC)
 ) ENGINE=InnoDB COMMENT='Extended profile for seller users';
 
+-- ---------------------------------------------------------------------------
+-- 3.1  PRODUCTS
+-- ---------------------------------------------------------------------------
+CREATE TABLE `products` (
+    `product_id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `seller_id` BIGINT UNSIGNED NOT NULL,
+    `category_id` INT UNSIGNED NOT NULL,
+    `sku` VARCHAR(100) NOT NULL COMMENT 'Global catalog SKU',
+    `product_name` VARCHAR(300) NOT NULL,
+    `slug` VARCHAR(350) NOT NULL,
+    `short_desc` VARCHAR(500) NULL,
+    `description` LONGTEXT NULL,
+    `brand` VARCHAR(150) NULL,
+    `base_price` DECIMAL(14,2) NOT NULL COMMENT 'In Ethiopian Birr (ETB)',
+    `sale_price` DECIMAL(14,2) NULL,
+    `cost_price` DECIMAL(14,2) NULL COMMENT 'Seller cost; not shown to buyers',
+    `currency` CHAR(3) NOT NULL DEFAULT 'ETB',
+    `weight_grams` INT UNSIGNED NULL,
+    `is_featured` TINYINT(1) NOT NULL DEFAULT 0,
+    `is_active` TINYINT(1) NOT NULL DEFAULT 1,
+    `requires_shipping` TINYINT(1) NOT NULL DEFAULT 1,
+    `tags` JSON NULL COMMENT 'Array of tag strings',
+    `metadata` JSON NULL,
+    `rating` DECIMAL(3,2) NOT NULL DEFAULT 0.00,
+    `review_count` INT UNSIGNED NOT NULL DEFAULT 0,
+    `deleted_at` DATETIME(3) NULL,
+    `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updated_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+
+    CONSTRAINT `fk_prod_seller` FOREIGN KEY (`seller_id`) REFERENCES `users`(`user_id`) ON DELETE RESTRICT,
+    CONSTRAINT `fk_prod_category` FOREIGN KEY (`category_id`) REFERENCES `categories`(`category_id`) ON DELETE RESTRICT,
+
+    UNIQUE KEY `uq_product_sku` (`sku`),
+    UNIQUE KEY `uq_product_slug` (`slug`),
+    KEY `idx_prod_seller` (`seller_id`),
+    KEY `idx_prod_category` (`category_id`),
+    KEY `idx_prod_active` (`is_active`, `deleted_at`),
+    KEY `idx_prod_featured` (`is_featured`, `is_active`),
+    KEY `idx_prod_cat_price` (`category_id`, `base_price`, `is_active`, `deleted_at`),
+    KEY `idx_prod_seller_active` (`seller_id`, `is_active`, `created_at`),
+    FULLTEXT KEY `ft_product_search` (`product_name`, `short_desc`, `brand`)
+) ENGINE=InnoDB COMMENT='Master product catalog';
+
+
+-- ---------------------------------------------------------------------------
+-- 3.2  PRODUCT IMAGES
+-- ---------------------------------------------------------------------------
+CREATE TABLE `product_images` (
+    `image_id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `product_id` BIGINT UNSIGNED NOT NULL,
+    `variant_id` BIGINT UNSIGNED NULL,
+    `url` VARCHAR(500) NOT NULL,
+    `alt_text` VARCHAR(300) NULL,
+    `sort_order` TINYINT UNSIGNED NOT NULL DEFAULT 0,
+    `is_primary` TINYINT(1) NOT NULL DEFAULT 0,
+
+    CONSTRAINT `fk_img_product` FOREIGN KEY (`product_id`) REFERENCES `products`(`product_id`) ON DELETE CASCADE,
+
+    KEY `idx_img_product` (`product_id`, `sort_order`)
+) ENGINE=InnoDB COMMENT='Product and variant images';
+
+
+-- ---------------------------------------------------------------------------
+-- 3.3  PRODUCT ATTRIBUTE TYPES
+-- ---------------------------------------------------------------------------
+CREATE TABLE `attribute_types` (
+    `attr_type_id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `attr_name` VARCHAR(100) NOT NULL,
+    `attr_code` VARCHAR(50) NOT NULL,
+    `display_type` ENUM('SWATCH','DROPDOWN','RADIO','TEXT') NOT NULL DEFAULT 'DROPDOWN',
+
+    UNIQUE KEY `uq_attr_code` (`attr_code`)
+) ENGINE=InnoDB;
+
+
+-- ---------------------------------------------------------------------------
+-- 3.4  PRODUCT ATTRIBUTE VALUES
+-- ---------------------------------------------------------------------------
+CREATE TABLE `attribute_values` (
+    `attr_value_id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `attr_type_id` INT UNSIGNED NOT NULL,
+    `value_label` VARCHAR(100) NOT NULL,
+    `value_code` VARCHAR(100) NOT NULL,
+    `hex_color` CHAR(7) NULL,
+    `sort_order` TINYINT NOT NULL DEFAULT 0,
+
+    CONSTRAINT `fk_attrval_type` FOREIGN KEY (`attr_type_id`)
+        REFERENCES `attribute_types`(`attr_type_id`) ON DELETE CASCADE,
+
+    UNIQUE KEY `uq_attr_value` (`attr_type_id`, `value_code`),
+    KEY `idx_attrval_type` (`attr_type_id`)
+) ENGINE=InnoDB;
+
+
+-- ---------------------------------------------------------------------------
+-- 3.5  PRODUCT VARIANTS
+-- ---------------------------------------------------------------------------
+CREATE TABLE `product_variants` (
+    `variant_id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `product_id` BIGINT UNSIGNED NOT NULL,
+    `variant_sku` VARCHAR(150) NOT NULL,
+    `variant_name` VARCHAR(200) NULL,
+    `price_delta` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    `weight_grams` INT UNSIGNED NULL,
+    `is_active` TINYINT(1) NOT NULL DEFAULT 1,
+    `deleted_at` DATETIME(3) NULL,
+    `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updated_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+
+    CONSTRAINT `fk_var_product` FOREIGN KEY (`product_id`)
+        REFERENCES `products`(`product_id`) ON DELETE CASCADE,
+
+    UNIQUE KEY `uq_variant_sku` (`variant_sku`),
+    KEY `idx_var_product` (`product_id`, `is_active`)
+) ENGINE=InnoDB COMMENT='Specific product variants (SKU-level)';
+
+
+-- ---------------------------------------------------------------------------
+-- 3.6  VARIANT ATTRIBUTE MAP
+-- ---------------------------------------------------------------------------
+CREATE TABLE `variant_attributes` (
+    `variant_id` BIGINT UNSIGNED NOT NULL,
+    `attr_value_id` INT UNSIGNED NOT NULL,
+
+    PRIMARY KEY (`variant_id`, `attr_value_id`),
+
+    CONSTRAINT `fk_va_variant` FOREIGN KEY (`variant_id`)
+        REFERENCES `product_variants`(`variant_id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_va_attrval` FOREIGN KEY (`attr_value_id`)
+        REFERENCES `attribute_values`(`attr_value_id`) ON DELETE RESTRICT,
+
+    KEY `idx_va_attr` (`attr_value_id`)
+) ENGINE=InnoDB COMMENT='Links variant to its attribute values';
