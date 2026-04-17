@@ -52,7 +52,7 @@
 
 ## 🌍 Project Overview
 
-This project implements a **production-quality relational database** for an Ethiopian multi-vendor e-commerce platform. The platform serves sellers and buyers across three major Ethiopian cities and is designed to handle real-world challenges including encrypted PII storage, distributed horizontal sharding, row-level security, fraud detection, and full audit trails.
+This project implements a **production-quality relational database** for an Ethiopian multi-vendor e-commerce platform. The platform serves sellers and buyers across multiple Ethiopian cities and is designed to handle real-world challenges including encrypted PII storage, distributed horizontal sharding, row-level security, fraud detection, and full audit trails.
 
 | Property | Value |
 |---|---|
